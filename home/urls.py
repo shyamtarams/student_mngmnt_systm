@@ -32,4 +32,7 @@ urlpatterns = [
     # path('std',student.as_view(),name='std'),
     path('students/',studentDtails,name="studentDtails"),
     path('students/<int:id>/',studentDtails,name="studentDtails"),
+    path('studenthome/',studentHome,name="studentHome"),
+    path('studenthome/<int:id>/',studentHome,name="studentHome"),
+    path('userlogin/',userLogin,name="userLogin"),
 ]

@@ -19,6 +19,7 @@ from .models import apiData
 from rest_framework import viewsets
 from rest_framework.views import APIView
 import json
+from rest_framework.permissions import IsAuthenticated
 
 
 @csrf_exempt
@@ -89,6 +90,26 @@ def studentDtails(request, id=0):
         return JsonResponse("deleted data",safe=False)
 
 
+# studentDetailsSerializers
+@csrf_exempt
+def studentHome(request,id=0):
+    if request.method == "GET":
+        student=Student.objects.all()
+        s_serializers = studentDetailsSerializers(student, many='True' )
+        return JsonResponse(s_serializers.data, safe=False)
+    
+    elif request.method == "PUT":
+        student = JSONParser().parse(request)
+        user = Student.objects.get(id=student['id'])
+        s_serializers = studentDetailsSerializers(user, student)
+        print(s_serializers)
+        print(student)
+        if s_serializers.is_valid():
+            s_serializers.save()
+            return JsonResponse('data updated', safe=False)
+        return JsonResponse("failed ",safe=False)
+
+
 
         
 
@@ -125,11 +146,21 @@ class sdatViewSet(APIView):
 class studentViewSet(viewsets.ModelViewSet):
     queryset = Student.objects.all().order_by('name')
     serializer_class = studentSerializers
+    # permission_classes = [IsAuthenticated]
     # def get(self,request):
     #     print("re")
     #     serializer_class = studentSerializers
    
-        
+
+def userLogin(request):
+    if request.method == "GET":
+        user= myUser.objects.all()
+        u_serializers = userSerializers(user, many='True' )
+        return JsonResponse(u_serializers.data, safe=False)
+
+    
+
+
 
 
 
