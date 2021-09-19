@@ -3,17 +3,22 @@ from .models import *
 from home.forms import studentRegisterForm
 
 from accounts.models import myUser
-
 from django.contrib.auth import login, authenticate
-
 from django.contrib.auth.decorators import login_required
 
 #searializers example
-from .serializers import dataSerializers
+# from .serializers import dataSerializers
+from .serializers import *
 from django.views.decorators.csrf import csrf_exempt
 from rest_framework.parsers import JSONParser
 from django.http.response import JsonResponse
 from .models import apiData
+
+
+
+from rest_framework import viewsets
+from rest_framework.views import APIView
+import json
 
 
 @csrf_exempt
@@ -44,15 +49,86 @@ def apiView(request,id=0):
         user = apiData.objects.get(id=id)
         user.delete()
         return JsonResponse("deleted data",safe=False)
-        
+
+#student function based
+@csrf_exempt
+def studentDtails(request, id=0):
+    if request.method == 'GET':
+        student=Student.objects.all()
+        s_serializers = studentSerializers(student, many='True' )
+        return JsonResponse(s_serializers.data, safe=False)
+    
+    elif request.method == 'POST':
+        student = JSONParser().parse(request)
+        print(student['username'])
+        login=Login(username=student['username'],password=student['password'])
+        login.save()
+        std=Login.objects.get(username=login.username)
+        print(login.username)
+        student.update({"login":std.id})
+        print(student)
+        s_serializers = studentSerializers(data = student)
+        print(s_serializers)
+        if s_serializers.is_valid():
+            s_serializers.save()
+            return JsonResponse('data in', safe=False)
+        return JsonResponse("failed ",safe=False)
+    
+    elif request.method == "PUT":
+        student = JSONParser().parse(request)
+        user = Student.objects.get(id=student['id'])
+        s_serializers = studentSerializers(user, student)
+        if s_serializers.is_valid():
+            s_serializers.save()
+            return JsonResponse('data updated', safe=False)
+        return JsonResponse("failed ",safe=False)
+    
+    elif request.method == "DELETE":
+        student = Student.objects.get(id=id)
+        student.delete()
+        return JsonResponse("deleted data",safe=False)
+
+
 
         
 
-        
-        
+# class searializers        
+class sdatViewSet(APIView):
+    serializer_class = studentSerializers
+    def get(self,request,*args, **kwargs):
+        user= Student.objects.all()
+        u_serializers = studentSerializers(user, many='True' )
+        return JsonResponse(u_serializers.data, safe=False)
+    
+    def post(self,request,*args, **kwargs):
+        udata = JSONParser().parse(request)
+        print(udata)
+        # nm=json.loads(request.data['username'])
+        print(nm)
+        # print(udata['username'])
+        # print(username)
+        # login=Login(username=udata['username'],password=udata['password'])
+        # login.save()
+        # print(udata)
+        # udata.push({"login":"login"})
+        print(udata)
+        u_serializers = studentSerializers(data = udata)
+        # print(u_serializers)
+        if u_serializers.is_valid():
+            u_serializers.save()
+            print(u_serializers)
+            return JsonResponse('data in', safe=False)
+        return JsonResponse("failed ",safe=False)
 
 
 
+class studentViewSet(viewsets.ModelViewSet):
+    queryset = Student.objects.all().order_by('name')
+    serializer_class = studentSerializers
+    # def get(self,request):
+    #     print("re")
+    #     serializer_class = studentSerializers
+   
         
 
 
